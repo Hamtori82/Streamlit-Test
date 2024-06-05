@@ -6,7 +6,7 @@ import streamlit as st
 import gspread
 
 # json 파일이 위치한 경로를 값으로 줘야 합니다.
-json_file_path = "F:/cryptic-honor-351410-5c57b4413112.json"
+json_file_path = "./cryptic-honor-351410-5c57b4413112.json"
 gc = gspread.service_account(json_file_path)
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/161C34zeA2iEmrK_vbaktj3um-HNxgsDxkh1LSQCWNp0/edit?usp=sharing"
 doc = gc.open_by_url(spreadsheet_url)
