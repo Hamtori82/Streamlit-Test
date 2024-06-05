@@ -68,7 +68,7 @@ def main():
             save_uploaded_file('csv', csv_file)
 
             # csv를 보여주기 위해 pandas 데이터 프레임으로 만들어야한다.
-            df = pd.read_csv('csv/'+filename)
+            df = pd.read_csv('csv/'+filename,encoding = 'cp949')
             st.dataframe(df)
 
 
