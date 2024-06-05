@@ -25,7 +25,7 @@ def save_uploaded_file(directory, file):
 def main():
     st.title('앱 데시보드')
 
-    menu = ['이미지 업로드', 'csv 업로드', 'About']
+    menu = ['이미지 업로드', 'csv 업로드', 'About', 'xlsx 업로드']
 
     choice = st.sidebar.selectbox('메뉴', menu)
     
@@ -70,6 +70,27 @@ def main():
             # csv를 보여주기 위해 pandas 데이터 프레임으로 만들어야한다.
             df = pd.read_csv('csv/'+filename,encoding = 'cp949')
             st.dataframe(df)
+
+    elif choice == menu[3]:
+        st.subheader('xlsx 파일 업로드 ')
+
+        xlsx_file = st.file_uploader('XLSX 파일 업로드', type=['xlsx'])
+
+        print(xlsx_file)
+        if xlsx_file is not None:
+            current_time = datetime.now()
+            filename = current_time.isoformat().replace(':', '_') + '.xlsx'
+
+            xlsx_file.name = filename
+
+            save_uploaded_file('xlsx', xlsx_file)
+
+            # xlsx를 보여주기 위해 pandas 데이터 프레임으로 만들어야한다.
+            # 엑셀 파일 열기
+            workbook = openpyxl.load_workbook('xlsx/'+filename)
+            worksheet = workbook.active
+            
+            st.dataframe(workbook)
 
 
     else :
