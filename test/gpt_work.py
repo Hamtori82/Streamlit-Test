@@ -207,15 +207,15 @@ elif choice == menu[1]:
                                    'Always fighting')
     
     # 함수형태로 번역기 형태 만들기
-    def google_trans(messages):
-        from googletrans import Translator
+    # def google_trans(messages):
+    #     from googletrans import Translator
         
-        google = Translator()
-        result = google.translate(messages, dest="ko")
+    #     google = Translator()
+    #     result = google.translate(messages, dest="ko")
         
-        return result.text
+    #     return result.text
     
-    st.info(google_trans(text))
+    # st.info(google_trans(text))
 
     # 문장을 띄어쓰기 단위로 나누기
     words = text.split()
