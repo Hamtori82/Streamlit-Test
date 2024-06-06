@@ -159,6 +159,7 @@ if choice == menu[0] :
     gc3['Token positive no.'] = ''
 
     row = 0
+    count = 0
 
     while row < gc3.shape[0]:
 
@@ -166,36 +167,45 @@ if choice == menu[0] :
         text = gc3.iloc[row, text_col]
 
         # 문장을 띄어쓰기 단위로 나누기
-        words = text.split()
 
-        #if work_range == '선택':
-        #    id_num = min_number-2
-        #    st.info(f'{row+id_num}. {text}')
-
-        #else:
-        #    st.info(f'{row+1}. {text}')
-        
-        st.info(text)
-
-        selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
-                                        words)
-        
-        # 선택한 단어의 인덱스 출력
-        if selected_words:
-            selected_indices = [str(words.index(word)) for word in selected_words]
-
-            st.text(f"선택한 단어: {', '.join(selected_words)}")
-            st.text(f"해당 인덱스: {', '.join(selected_indices)}")
-
+        if text == None:
             # 선택한 인덱스를 'token' 열에 저장
-            token_value = ', '.join(selected_indices)
+            token_value = ''
             gc3.iloc[row, token_col] = token_value
-
+        
         else:
-            st.text("단어를 선택하지 않았습니다.")
+            words = text.split()
+
+            #if work_range == '선택':
+            #    id_num = min_number-2
+            #    st.info(f'{row+id_num}. {text}')
+
+            #else:
+            #    st.info(f'{row+1}. {text}')
+            
+            st.info(text)
+
+            selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
+                                            words,
+                                            key = count) 
+            
+            # 선택한 단어의 인덱스 출력
+            if selected_words:
+                selected_indices = [str(words.index(word)) for word in selected_words]
+
+                st.text(f"선택한 단어: {', '.join(selected_words)}")
+                st.text(f"해당 인덱스: {', '.join(selected_indices)}")
+
+                # 선택한 인덱스를 'token' 열에 저장
+                token_value = ', '.join(selected_indices)
+                gc3.iloc[row, token_col] = token_value
+
+            else:
+                st.text("단어를 선택하지 않았습니다.")
 
         row += 1
-    
+        count += 1
+        
     st.write('---------------------')
     st.write('결과')
     st.dataframe(gc3)
