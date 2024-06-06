@@ -132,7 +132,7 @@ if choice == menu[0] :
     work_range = st.selectbox('작업범위를 설정해주세요',
                               ('전체','선택'))
         
-    gc_df = gc1.get('B2:E')
+    gc_df = gc1.get('B2:E202') #('B2:E')
     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
     if work_range == '선택':
