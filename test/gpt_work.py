@@ -128,25 +128,40 @@ if choice == menu[0] :
         
     st.write('---------------------')
         
-    gc1 = doc.worksheet(sheet_name) ## 입력받도록!
-    work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('전체','선택'))
+  #   gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+  #   work_range = st.selectbox('작업범위를 설정해주세요',
+  #                             ('전체','선택'))
         
-    gc_df = gc1.get('B2:E202') #('B2:E')
-    gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+  #   gc_df = gc1.get('B2:E202') #('B2:E')
+  #   gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
-    if work_range == '선택':
-        # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
-        min_number = st.number_input(
-		f'숫자를 입력하세요(3-{len(gc3)+1})',
-        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+  #   if work_range == '선택':
+  #       # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+  #       min_number = st.number_input(
+		# f'숫자를 입력하세요(3-{len(gc3)+1})',
+  #       min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        max_number = st.number_input(
-		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=len(gc3)+1, step=1)
+  #       max_number = st.number_input(
+		# f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
+  #       min_value=min_number, max_value=len(gc3)+1, value=len(gc3)+1, step=1)
 
-        gc2 = gc1.get(f'B{min_number-1}:E{max_number}')
-        gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+  #       gc2 = gc1.get(f'B{min_number-1}:E{max_number}')
+  #       gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+	
+	gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+	work_range = st.selectbox('작업범위를 설정해주세요',
+			      ('시작구간 선택','선택'))
+	
+	gc_df = gc1.get('B2:E')
+	gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+	
+	if work_range == '시작구간 선택':
+	min_number = st.number_input(
+		f'숫자를 입력하세요(3-{len(gc3)-200})',
+	min_value=3, max_value=len(gc3)+1, value=3, step=1)
+	
+	gc2 = gc1.get(f'B{min_number-1}:E{min_number+201}')
+	gc3 = pd.DataFrame(gc2, columns=gc_df[0])
     
     st.write('---------------------')
 
