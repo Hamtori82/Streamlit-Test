@@ -192,7 +192,7 @@ if choice == menu[0] :
             gc3.iloc[row, token_col] = token_value
 
         else:
-            print("단어를 선택하지 않았습니다.")
+            st.text("단어를 선택하지 않았습니다.")
 
         row += 1
     
