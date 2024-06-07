@@ -130,18 +130,24 @@ if choice == menu[0] :
 
     gc1 = doc.worksheet(sheet_name) ## 입력받도록!
     work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('시작구간 선택','선택')) # 전체..
+                              ('시작구간 선택 (200개 단위)','선택')) # 전체..
         
     gc_df = gc1.get('B2:E')
     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
-    if work_range == '시작구간 선택':
+    if work_range == '시작구간 선택 (200개 단위)':
         min_number = st.number_input(
-		f'숫자를 입력하세요(3-{len(gc3)-200})',
+		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        gc2 = gc1.get(f'B{min_number-1}:E{min_number+201}')
-        gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+        try:
+            gc2 = gc1.get(f'B{min_number-1}:E{min_number+201}')
+            print(gc2)
+            gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+        except:
+            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+            gc_df = gc1.get('B2:E2')
+            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
 
     elif work_range == '범위 선택':
