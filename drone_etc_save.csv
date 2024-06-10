@@ -1,0 +1,12 @@
+folder,kind,day,night,etc
+NegativeDB_chimney,train,8828,0,0
+NegativeDB_cloud,train,217,0,0
+NegativeDB_fog,train,98,0,0
+PositiveSyntheticDB_dark,train,1483,0,0
+NegativeDB_chimney,val,1188,0,0
+PositiveRealDB_dark,val,121,0,0
+PositiveRealDB_whitegray,val,865,0,0
+NegativeDB_cloud,train,0,0,5
+PositiveSyntheticDB_dark,train,0,0,243
+PositiveRealDB_dark,val,0,0,194
+PositiveRealDB_whitegray,val,0,0,108
