@@ -291,12 +291,12 @@ elif choice == menu[2]:
 
         max_number = st.number_input(
 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=len(gc3)+1, step=1)
+        min_value=min_number, max_value=len(gc3)+1, value=203, step=1)
 
-        gc2 = gc1.get(f'B{min_number-1}:E{max_number}')
+        gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
         gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-    
-    st.write('---------------------')
+
+	st.write('---------------------')
 
     gc3 = gc3.reindex(gc3.index.drop(0))
 
