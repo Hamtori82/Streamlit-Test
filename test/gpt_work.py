@@ -107,7 +107,7 @@ import gspread
 st.sidebar.title('LLM 기반 AI학습용 데이터셋 구축 툴🌸')
 
 menu = ['Token Positive 선별 작업 (전체)', 'Token Positive 선별 작업 (문장)','Token Positive 검수'] #,'작업한 내용 확인 및 수정 (전체)'
-choice = st.sidebar.selectbox('메뉴', menu)
+choice = st.sidebar.selectbox('작업', menu)
 
 
 # json 파일이 위치한 경로를 값으로 줘야 합니다.
