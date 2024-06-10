@@ -247,7 +247,7 @@ elif choice == menu[1]:
         
     #     return result.text
     
-    st.info(google_trans(text))
+    # st.info(google_trans(text))
 
     # 문장을 띄어쓰기 단위로 나누기
     words = text.split()
