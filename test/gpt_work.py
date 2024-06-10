@@ -295,8 +295,8 @@ elif choice == menu[2]:
 
         gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
         gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-
-	st.write('---------------------')
+    
+    st.write('---------------------')
 
     gc3 = gc3.reindex(gc3.index.drop(0))
 
