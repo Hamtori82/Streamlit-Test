@@ -127,12 +127,12 @@ if choice == menu[0] :
                                    'whitegray_1')
         
     st.write('---------------------')
-
+        
     gc1 = doc.worksheet(sheet_name) ## 입력받도록!
     work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('시작구간 선택 (200개 단위)','선택')) # 전체..
+                              ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
         
-    gc_df = gc1.get('B2:E')
+    gc_df = gc1.get('A2:E')
     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
     if work_range == '시작구간 선택 (200개 단위)':
@@ -141,13 +141,14 @@ if choice == menu[0] :
         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
         try:
-            gc2 = gc1.get(f'B{min_number-1}:E{min_number+201}')
+            gc2 = gc1.get(f'A{min_number-1}:E{min_number+201}')
             print(gc2)
             gc3 = pd.DataFrame(gc2, columns=gc_df[0])
         except:
             st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
-            gc_df = gc1.get('B2:E2')
+            gc_df = gc1.get('A2:E2')
             gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+        
 
 
     elif work_range == '범위 선택':
@@ -158,33 +159,10 @@ if choice == menu[0] :
 
         max_number = st.number_input(
 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=len(gc3)+1, step=1)
+        min_value=min_number, max_value=len(gc3)+1, value=203, step=1)
 
-        gc2 = gc1.get(f'B{min_number-1}:E{max_number}')
+        gc2 = gc1.get(f'A{min_number-1}:E{max_number}')
         gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-    
-        
-  #   gc1 = doc.worksheet(sheet_name) ## 입력받도록!
-  #   work_range = st.selectbox('작업범위를 설정해주세요',
-  #                             ('전체','선택'))
-        
-  #   gc_df = gc1.get('B2:E202') #('B2:E')
-  #   gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
-
-  #   if work_range == '선택':
-  #       # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
-  #       min_number = st.number_input(
-		# f'숫자를 입력하세요(3-{len(gc3)+1})',
-  #       min_value=3, max_value=len(gc3)+1, value=3, step=1)
-
-  #       max_number = st.number_input(
-		# f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-  #       min_value=min_number, max_value=len(gc3)+1, value=len(gc3)+1, step=1)
-
-  #       gc2 = gc1.get(f'B{min_number-1}:E{max_number}')
-  #       gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-	
-	
     
     st.write('---------------------')
 
@@ -204,9 +182,13 @@ if choice == menu[0] :
         # 문장 가져오기
         text = gc3.iloc[row, text_col]
 
+        
+
         # 문장을 띄어쓰기 단위로 나누기
+        #print(text, row)
 
         if text == None:
+            #print(text, row)
             # 선택한 인덱스를 'token' 열에 저장
             token_value = ''
             gc3.iloc[row, token_col] = token_value
@@ -221,8 +203,10 @@ if choice == menu[0] :
             #else:
             #    st.info(f'{row+1}. {text}')
             
-            st.info(text)
+            num = row+min_number-2
+            st.info(f'{num}. {text}')
 
+            #print(words)
             selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
                                             words,
                                             key = count) 
@@ -255,15 +239,15 @@ elif choice == menu[1]:
                                    'Always fighting')
     
     # 함수형태로 번역기 형태 만들기
-    # def google_trans(messages):
-    #     from googletrans import Translator
+    def google_trans(messages):
+        from googletrans import Translator
         
-    #     google = Translator()
-    #     result = google.translate(messages, dest="ko")
+        google = Translator()
+        result = google.translate(messages, dest="ko")
         
-    #     return result.text
+        return result.text
     
-    # st.info(google_trans(text))
+    st.info(google_trans(text))
 
     # 문장을 띄어쓰기 단위로 나누기
     words = text.split()
