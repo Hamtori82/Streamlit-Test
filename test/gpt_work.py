@@ -104,6 +104,7 @@ import os
 import pandas as pd
 import gspread
 
+st.sidebar.title('LLM 기반 AI학습용 데이터셋 구축 툴🌸')
 
 menu = ['토큰 작업 (전체)', '토큰 작업 (문장)','작업한 내용 확인'] #,'작업한 내용 확인 및 수정 (전체)'
 choice = st.sidebar.selectbox('메뉴', menu)
