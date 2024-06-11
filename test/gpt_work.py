@@ -337,9 +337,8 @@ elif choice == menu[2]:
 	                # 선택한 인덱스를 'token' 열에 저장
 	                token_value = ', '.join(word)
 	                gc3.iloc[row, token_col] = token_value
-
-
-		        row += 1
+			
+			row += 1
 		        
 		        st.write('---------------------')
 		        st.write('결과')
