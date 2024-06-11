@@ -346,13 +346,13 @@ elif choice == menu[2]:
         st.write('결과')
         st.dataframe(gc3)
 
-    except: 
-	text = gc3.iloc[row, text_col]
-        st.write('범위에 오류가 있습니다.')
-	st.info(text)
-        st.text(f"선택 인덱스: {', '.join(index_num)}")
-        st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
-        print()
+    except:
+	    text = gc3.iloc[row, text_col]
+            st.write('범위에 오류가 있습니다.')
+	    st.info(text)
+	    st.text(f"선택 인덱스: {', '.join(index_num)}")
+	    st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
+	    print()
 
 
 # elif a == '5':
