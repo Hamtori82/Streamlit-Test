@@ -347,7 +347,6 @@ elif choice == menu[2]:
         st.dataframe(gc3)
 
     except:
-	    text = gc3.iloc[row, text_col]
 	    st.write('범위에 오류가 있습니다.')
 	    st.info(text)
 	    st.text(f"선택 인덱스: {', '.join(index_num)}")
