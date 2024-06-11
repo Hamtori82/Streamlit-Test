@@ -324,25 +324,23 @@ elif choice == menu[2]:
 		    word = [] 
 		    
 		    try:
-
-	                for no in index_num:
+			    for no in index_num:
 	                    print(text, index_num, no)
 	                    if no is not '' and no is not ' ':
-	                        word.append(words[int(no)])
-	
-	                st.info(text)
-	                st.text(f"선택한 단어: {', '.join(word)}")
-	                st.text(f"해당 인덱스: {', '.join(index_num)}")
-	            
-	                # 선택한 인덱스를 'token' 열에 저장
-	                token_value = ', '.join(word)
-	                gc3.iloc[row, token_col] = token_value
-			
-			row += 1
-		        
-		        st.write('---------------------')
-		        st.write('결과')
-		        st.dataframe(gc3)
+				    word.append(words[int(no)])
+				    
+			    st.info(text)
+			    st.text(f"선택한 단어: {', '.join(word)}")
+			    st.text(f"해당 인덱스: {', '.join(index_num)}")
+			    
+		    # 선택한 인덱스를 'token' 열에 저장
+		    token_value = ', '.join(word)
+		    gc3.iloc[row, token_col] = token_value
+		    
+		    row += 1
+		    st.write('---------------------')
+		    st.write('결과')
+		    st.dataframe(gc3)
 
 		    except:
 			    st.write('범위에 오류가 있습니다.')
