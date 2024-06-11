@@ -348,7 +348,7 @@ elif choice == menu[2]:
 
     except:
 	    text = gc3.iloc[row, text_col]
-            st.write('범위에 오류가 있습니다.')
+	    st.write('범위에 오류가 있습니다.')
 	    st.info(text)
 	    st.text(f"선택 인덱스: {', '.join(index_num)}")
 	    st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
