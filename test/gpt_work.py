@@ -310,44 +310,48 @@ elif choice == menu[2]:
     gc3['token'] = ''
 
     row = 0
-    
-    while row < gc3.shape[0]:
-	
-	    # 문장 가져오기
-	    text = gc3.iloc[row, text_col]
-	    index_no = gc3.iloc[row, index_col]
 
-	    # 문장을 띄어쓰기 단위로 나누기
-	    if text is not None:
-		    words = text.split()
-		    index_num = index_no.split(',')
-		    word = [] 
-		    
-		    try:
-			    for no in index_num:
-	                    print(text, index_num, no)
-	                    if no is not '' and no is not ' ':
-				    word.append(words[int(no)])
-				    
-			    st.info(text)
-			    st.text(f"선택한 단어: {', '.join(word)}")
-			    st.text(f"해당 인덱스: {', '.join(index_num)}")
-			    
-		    # 선택한 인덱스를 'token' 열에 저장
-		    token_value = ', '.join(word)
-		    gc3.iloc[row, token_col] = token_value
-		    
-		    row += 1
-		    st.write('---------------------')
-		    st.write('결과')
-		    st.dataframe(gc3)
+    try:
 
-		    except:
-			    st.write('범위에 오류가 있습니다.')
-			    st.info(text)
-			    st.text(f"선택 인덱스: {', '.join(index_num)}")
-			    st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
-			    print()
+        while row < gc3.shape[0]:
+
+            # 문장 가져오기
+            text = gc3.iloc[row, text_col]
+            index_no = gc3.iloc[row, index_col]
+
+            # 문장을 띄어쓰기 단위로 나누기
+            if text is not None:
+                words = text.split()
+                index_num = index_no.split(',')
+
+                word = [] 
+
+                for no in index_num:
+                    print(text, index_num, no)
+                    if no is not '' and no is not ' ':
+                        word.append(words[int(no)])
+
+                st.info(text)
+                st.text(f"선택한 단어: {', '.join(word)}")
+                st.text(f"해당 인덱스: {', '.join(index_num)}")
+            
+                # 선택한 인덱스를 'token' 열에 저장
+                token_value = ', '.join(word)
+                gc3.iloc[row, token_col] = token_value
+
+
+            row += 1
+        
+        st.write('---------------------')
+        st.write('결과')
+        st.dataframe(gc3)
+
+    except: 
+	    st.write('범위에 오류가 있습니다.')
+	    st.info(text)
+	    st.text(f"선택 인덱스: {', '.join(index_num)}")
+	    st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
+	    print()
 
 
 # elif a == '5':
