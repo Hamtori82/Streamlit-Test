@@ -293,7 +293,7 @@ elif choice == menu[2]:
 
         max_number = st.number_input(
 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=203, step=1)
+        min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
 
         gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
         gc3 = pd.DataFrame(gc2, columns=gc_df[0])
@@ -319,6 +319,7 @@ elif choice == menu[2]:
             text = gc3.iloc[row, text_col]
             index_no = gc3.iloc[row, index_col]
 
+
             # 문장을 띄어쓰기 단위로 나누기
             if text is not None:
                 words = text.split()
@@ -342,11 +343,15 @@ elif choice == menu[2]:
                 
         
         except:
-            
             st.error(f'{row+min_number-2}. {text}')
-            st.write('범위에 오류가 있습니다.')
-            st.text(f"선택 인덱스: {', '.join(index_num)}")
-            st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
+
+            if index_no is None:
+                st.write('토큰 선택 작업을 수행하지 않았습니다.')
+            
+            else:
+                st.write('범위에 오류가 있습니다.')
+                st.text(f"선택 인덱스: {', '.join(index_num)}")
+                st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
             
         row += 1
             
