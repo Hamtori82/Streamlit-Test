@@ -3,7 +3,6 @@ NegativeDB_chimney,train,64139
 NegativeDB_cloud,train,64052
 NegativeDB_fog,train,31998
 PositiveRealDB_dark,train,76723
-PositiveRealDB_dark__드론주간,train,8569
 PositiveRealDB_fire,train,57588
 PositiveRealDB_whitegray,train,153691
 PositiveSyntheticDB_dark,train,29839
