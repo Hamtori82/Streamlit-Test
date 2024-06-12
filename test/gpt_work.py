@@ -291,7 +291,7 @@ elif choice == menu[2]:
 
         try:
             if min_number + 200 > len(gc3):
-                gc2 = gc1.get(f'A{min_number-1}:F{len(gc3)}')
+                gc2 = gc1.get(f'A{min_number-1}:F')
                 print(gc2)
                 gc3 = pd.DataFrame(gc2, columns=gc_df[0])
             
