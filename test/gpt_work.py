@@ -276,16 +276,37 @@ elif choice == menu[2]:
                                    'whitegray_1')
         
     st.write('---------------------')
-        
+
     gc1 = doc.worksheet(sheet_name) ## 입력받도록!
     work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('전체','선택'))
+                              ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
         
-    gc_df = gc1.get('B2:F')
+    gc_df = gc1.get('A2:F')
     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
-    min_number = 3
 
-    if work_range == '선택':
+    if work_range == '시작구간 선택 (200개 단위)':
+        min_number = st.number_input(
+		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
+        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+
+        try:
+            if min_number + 200 > len(gc3):
+                gc2 = gc1.get(f'A{min_number-1}:F{len(gc3)}')
+                print(gc2)
+                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+            
+            else:
+                gc2 = gc1.get(f'A{min_number-1}:F{min_number+199}')
+                print(gc2)
+                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+        except:
+            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+            gc_df = gc1.get('A2:F2')
+            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+        
+
+
+    elif work_range == '범위 선택':
         # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
         min_number = st.number_input(
 		f'숫자를 입력하세요(3-{len(gc3)+1})',
@@ -295,12 +316,49 @@ elif choice == menu[2]:
 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
         min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
 
-        gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
-        gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+        try:
+            if min_number + 200 > len(gc3):
+                gc2 = gc1.get(f'A{min_number-1}:F{len(gc3)}')
+                print(gc2)
+                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+            
+            else:
+                gc2 = gc1.get(f'A{min_number-1}:F{max_number}')
+                print(gc2)
+                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+        except:
+            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+            gc_df = gc1.get('A2:F2')
+            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
     
     st.write('---------------------')
 
     gc3 = gc3.reindex(gc3.index.drop(0))
+        
+    # gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+    # work_range = st.selectbox('작업범위를 설정해주세요',
+    #                           ('전체','선택'))
+        
+    # gc_df = gc1.get('B2:F')
+    # gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+    # min_number = 3
+
+    # if work_range == '선택':
+    #     # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+    #     min_number = st.number_input(
+	# 	f'숫자를 입력하세요(3-{len(gc3)+1})',
+    #     min_value=3, max_value=len(gc3)+1, value=3, step=1)
+
+    #     max_number = st.number_input(
+	# 	f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
+    #     min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
+
+    #     gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
+    #     gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+    
+    # st.write('---------------------')
+
+    # gc3 = gc3.reindex(gc3.index.drop(0))
 
     text_col = list(gc3.columns).index('Convert text')
     index_col = list(gc3.columns).index('Token positive no.')
