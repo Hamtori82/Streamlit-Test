@@ -111,7 +111,7 @@ choice = st.sidebar.selectbox('작업', menu)
 
 
 # json 파일이 위치한 경로를 값으로 줘야 합니다.
-json_file_path = "cryptic-honor-351410-5c57b4413112.json"
+json_file_path = "F:/cryptic-honor-351410-5c57b4413112.json"
 gc = gspread.service_account(json_file_path)
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1YW08AaIgaPL-XvDCVu76vfFTPkCAW4JM-EsEjCJy1yU/edit?usp=sharing"
 doc = gc.open_by_url(spreadsheet_url)
@@ -283,6 +283,7 @@ elif choice == menu[2]:
         
     gc_df = gc1.get('B2:F')
     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+    min_number = 3
 
     if work_range == '선택':
         # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
@@ -310,11 +311,10 @@ elif choice == menu[2]:
     gc3['token'] = ''
 
     row = 0
-
-    try:
-
-        while row < gc3.shape[0]:
-
+    
+    
+    while row < gc3.shape[0]:
+        try:
             # 문장 가져오기
             text = gc3.iloc[row, text_col]
             index_no = gc3.iloc[row, index_col]
@@ -323,35 +323,38 @@ elif choice == menu[2]:
             if text is not None:
                 words = text.split()
                 index_num = index_no.split(',')
-
                 word = [] 
-
+                
+            
                 for no in index_num:
                     print(text, index_num, no)
+                    
                     if no is not '' and no is not ' ':
                         word.append(words[int(no)])
-
-                st.info(text)
+                    
+                st.info(f'{row+min_number-2}. {text}')
                 st.text(f"선택한 단어: {', '.join(word)}")
                 st.text(f"해당 인덱스: {', '.join(index_num)}")
-            
+                    
                 # 선택한 인덱스를 'token' 열에 저장
                 token_value = ', '.join(word)
                 gc3.iloc[row, token_col] = token_value
-
-
-            row += 1
+                
         
-        st.write('---------------------')
-        st.write('결과')
-        st.dataframe(gc3)
-
-    except: 
-	    st.write('범위에 오류가 있습니다.')
-	    st.info(text)
-	    st.text(f"선택 인덱스: {', '.join(index_num)}")
-	    st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
-	    print()
+        except:
+            
+            st.error(f'{row+min_number-2}. {text}')
+            st.write('범위에 오류가 있습니다.')
+            st.text(f"선택 인덱스: {', '.join(index_num)}")
+            st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
+            
+        row += 1
+            
+    st.write('---------------------')
+    st.write('결과')
+    st.dataframe(gc3)
+        
+    
 
 
 # elif a == '5':
