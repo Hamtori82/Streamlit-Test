@@ -111,7 +111,7 @@ choice = st.sidebar.selectbox('작업', menu)
 
 
 # json 파일이 위치한 경로를 값으로 줘야 합니다.
-json_file_path = "F:/cryptic-honor-351410-5c57b4413112.json"
+json_file_path = "cryptic-honor-351410-5c57b4413112.json"
 gc = gspread.service_account(json_file_path)
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1YW08AaIgaPL-XvDCVu76vfFTPkCAW4JM-EsEjCJy1yU/edit?usp=sharing"
 doc = gc.open_by_url(spreadsheet_url)
