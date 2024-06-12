@@ -4,7 +4,7 @@ NegativeDB_cloud,train,5127,0,34
 NegativeDB_fog,train,4751,0,1515
 PositiveRealDB_dark,train,12778,0,37
 PositiveRealDB_fire,train,3092,0,4
-PositiveRealDB_whitegray,train,24130,0,1529
+PositiveRealDB_whitegray,train,24597,0,1529
 PositiveSyntheticDB_dark,train,4462,0,0
 NegativeDB_chimney,val,402,0,0
 NegativeDB_cloud,val,1144,0,0
