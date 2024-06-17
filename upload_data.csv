@@ -10,6 +10,7 @@ PositiveSyntheticDB_fire,train,22361
 PositiveSyntheticDB_whitegray,train,59974
 NegativeDB_chimney,val,7876
 NegativeDB_cloud,val,7922
+라벨링할 데이터,val,186
 NegativeDB_fog,val,4002
 PositiveRealDB_dark,val,9630
 PositiveRealDB_fire,val,7231
