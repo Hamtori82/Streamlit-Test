@@ -222,7 +222,7 @@ if choice == menu[0] :
                 # # 선택한 인덱스를 'token' 열에 저장
                 # token_value = ', '.join(selected_indices)
                 # gc3.iloc[row, token_col] = token_value
-
+		
 		selected_indices = [str(words.index(word)) for word in selected_words]
                 test = sorted(selected_indices)
 
