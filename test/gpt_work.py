@@ -1,3 +1,186 @@
+import streamlit as st
+import os
+import pandas as pd
+import gspread
+import psycopg2
+
+st.sidebar.title('LLM 기반 AI학습용 데이터셋 구축 툴🌸')
+
+menu = ['Token Positive 선별 작업 (전체)', 'Token Positive 선별 작업 (문장)','Token Positive 검수'] #,'작업한 내용 확인 및 수정 (전체)'
+choice = st.sidebar.selectbox('작업', menu)
+
+## db 연결
+db = psycopg2.connect(host='localhost', dbname='fire_save',user='postgres',password=1234,port=5433)
+cursor=db.cursor()
+
+
+if choice == menu[0] :
+    ## get_all_values() 함수를 이용해 코드를 실행하면 리스트 형태의 값이 리턴됩니다.
+    # sheet_name = st.selectbox('시트명을 선택해주세요',
+    #                         ('whitegray_1','whitegray_2','그 외'))
+
+    sheet_name = st.selectbox('시트명을 선택해주세요',
+                            ('whitegray_1','gpt_test'))
+    
+    method = st.selectbox('방법을 선택해주세요',
+                            ('수동','자동'))
+    
+    if sheet_name == '그 외':
+        sheet_name = st.text_input('시트명을 입력해주세요',
+                                'whitegray_1')
+        
+    st.write('---------------------')
+
+    ## db 데이터 불러오기
+    cursor.execute(f"select * from {sheet_name}")
+    rows = cursor.fetchall()
+    df = pd.DataFrame(rows, columns=['id','folder_name', 'image_name', 'result_text', 'convert_text','tokens_positive_no'])
+        
+    work_range = st.selectbox('작업범위를 설정해주세요',
+                            ('시작구간 선택 (200개 단위)','범위 선택')) # 전체
+
+    if work_range == '시작구간 선택 (200개 단위)':
+        min_number = st.number_input(
+        f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (1-{len(df)-200})',
+        min_value=1, max_value=len(df)+1, value=1, step=1)
+
+        try:
+            df = df.sort_values('id')
+            df = df[min_number-1:min_number+199]
+
+        except:
+            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+            df = df[:0]
+        
+
+
+    elif work_range == '범위 선택':
+        # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+        min_number = st.number_input(
+        f'숫자를 입력하세요(1-{len(df)+1})',
+        min_value=1, max_value=len(df)+1, value=1, step=1)
+
+        max_number = st.number_input(
+        f'숫자를 입력하세요({min_number}-{len(df)+1})',
+        min_value=min_number, max_value=len(df)+1, value=200, step=1)
+
+        df = df[min_number-1:max_number]
+    
+    st.write('---------------------')
+    
+
+    text_col = list(df.columns).index('convert_text')
+
+    # 'token' 열 추가
+    token_col = text_col + 1
+
+    row = 0
+    count = 0
+    count2 = 1
+
+    while row < df.shape[0]:
+
+        # 문장 가져오기
+        text = df.iloc[row, text_col]
+
+        
+
+        # 문장을 띄어쓰기 단위로 나누기
+        #print(text, row)
+
+        if text == None:
+            #print(text, row)
+            # 선택한 인덱스를 'token' 열에 저장
+            token_value = ''
+            df.iloc[row, token_col] = token_value
+        
+        else:
+            words = text.split()
+
+            #if work_range == '선택':
+            #    id_num = min_number-2
+            #    st.info(f'{row+id_num}. {text}')
+
+            #else:
+            #    st.info(f'{row+1}. {text}')
+            
+            num = row+min_number
+            st.info(f'{num}. {text}')
+
+            #print(words)
+            selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
+                                            words,
+                                            key = count) 
+            
+            # 선택한 단어의 인덱스 출력
+            if selected_words:
+                selected_indices = [str(words.index(word)) for word in selected_words]
+                test = sorted(selected_indices)
+
+                st.text(f"선택한 단어: {', '.join(selected_words)}")
+                st.text(f"해당 인덱스: {', '.join(test)}")
+
+                # 선택한 인덱스를 'token' 열에 저장
+                token_value = ', '.join(test)
+                df.iloc[row, token_col] = token_value
+
+                if method == '수동':
+                    if st.button('수정',key = 'n' + str(count2)):
+                        bb = '"' + token_value.strip() + '"'
+                        print(bb)
+                        cursor.execute(f" UPDATE {sheet_name} SET tokens_positive_no =  {bb} WHERE id = {num} ")
+                  
+                       
+
+
+
+                #if method == '자동':
+                #    gc1.update_acell(f'F{min_number+row}', token_value)
+
+
+
+            else:   
+                st.text("단어를 선택하지 않았습니다.")
+
+        row += 1
+        count += 1
+        count2 += 1
+        
+    st.write('---------------------')
+    st.write('결과')
+    st.dataframe(df)
+
+
+
+elif choice == menu[1]:
+    text = st.text_input('문장을 입력해주세요',
+                                   'Always fighting')
+    
+    # # 함수형태로 번역기 형태 만들기
+    # def google_trans(messages):
+    #     from googletrans import Translator
+        
+    #     google = Translator()
+    #     result = google.translate(messages, dest="ko")
+        
+    #     return result.text
+    
+    # st.info(google_trans(text))
+
+    # 문장을 띄어쓰기 단위로 나누기
+    words = text.split()
+
+    selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
+                                    words)
+    
+    # 선택한 단어의 인덱스 출력
+    if selected_words:
+        selected_indices = [str(words.index(word)) for word in selected_words]
+
+        st.text(f"선택한 단어: {', '.join(selected_words)}")
+        st.text(f"해당 인덱스: {', '.join(selected_indices)}")
+
+
 # import streamlit as st
 
 # import pandas as pd
@@ -99,334 +282,334 @@
 # if __name__ == '__main__':
 #     main()
 
-import streamlit as st
-import os
-import pandas as pd
-import gspread
+# import streamlit as st
+# import os
+# import pandas as pd
+# import gspread
 
-st.sidebar.title('LLM 기반 AI학습용 데이터셋 구축 툴🌸')
+# st.sidebar.title('LLM 기반 AI학습용 데이터셋 구축 툴🌸')
 
-menu = ['Token Positive 선별 작업 (전체)', 'Token Positive 선별 작업 (문장)','Token Positive 검수'] #,'작업한 내용 확인 및 수정 (전체)'
-choice = st.sidebar.selectbox('작업', menu)
-
-
-# json 파일이 위치한 경로를 값으로 줘야 합니다.
-json_file_path = "cryptic-honor-351410-5c57b4413112.json"
-gc = gspread.service_account(json_file_path)
-spreadsheet_url = "https://docs.google.com/spreadsheets/d/1YW08AaIgaPL-XvDCVu76vfFTPkCAW4JM-EsEjCJy1yU/edit?usp=sharing"
-doc = gc.open_by_url(spreadsheet_url)
+# menu = ['Token Positive 선별 작업 (전체)', 'Token Positive 선별 작업 (문장)','Token Positive 검수'] #,'작업한 내용 확인 및 수정 (전체)'
+# choice = st.sidebar.selectbox('작업', menu)
 
 
-if choice == menu[0] :
+# # json 파일이 위치한 경로를 값으로 줘야 합니다.
+# json_file_path = "cryptic-honor-351410-5c57b4413112.json"
+# gc = gspread.service_account(json_file_path)
+# spreadsheet_url = "https://docs.google.com/spreadsheets/d/1YW08AaIgaPL-XvDCVu76vfFTPkCAW4JM-EsEjCJy1yU/edit?usp=sharing"
+# doc = gc.open_by_url(spreadsheet_url)
 
-    ## get_all_values() 함수를 이용해 코드를 실행하면 리스트 형태의 값이 리턴됩니다.
-    sheet_name = st.selectbox('시트명을 선택해주세요',
-                              ('whitegray_1','whitegray_2','그 외'))
+
+# if choice == menu[0] :
+
+#     ## get_all_values() 함수를 이용해 코드를 실행하면 리스트 형태의 값이 리턴됩니다.
+#     sheet_name = st.selectbox('시트명을 선택해주세요',
+#                               ('whitegray_1','whitegray_2','그 외'))
     
-    if sheet_name == '그 외':
-        sheet_name = st.text_input('시트명을 입력해주세요',
-                                   'whitegray_1')
+#     if sheet_name == '그 외':
+#         sheet_name = st.text_input('시트명을 입력해주세요',
+#                                    'whitegray_1')
         
-    st.write('---------------------')
+#     st.write('---------------------')
         
-    gc1 = doc.worksheet(sheet_name) ## 입력받도록!
-    work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
+#     gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+#     work_range = st.selectbox('작업범위를 설정해주세요',
+#                               ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
         
-    gc_df = gc1.get('A2:E')
-    gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#     gc_df = gc1.get('A2:E')
+#     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
-    if work_range == '시작구간 선택 (200개 단위)':
-        min_number = st.number_input(
-		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
-        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+#     if work_range == '시작구간 선택 (200개 단위)':
+#         min_number = st.number_input(
+# 		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
+#         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        try:
-            gc2 = gc1.get(f'A{min_number-1}:E{min_number+201}')
-            print(gc2)
-            gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-        except:
-            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
-            gc_df = gc1.get('A2:E2')
-            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#         try:
+#             gc2 = gc1.get(f'A{min_number-1}:E{min_number+201}')
+#             print(gc2)
+#             gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         except:
+#             st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+#             gc_df = gc1.get('A2:E2')
+#             gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
         
 
 
-    elif work_range == '범위 선택':
-        # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
-        min_number = st.number_input(
-		f'숫자를 입력하세요(3-{len(gc3)+1})',
-        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+#     elif work_range == '범위 선택':
+#         # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+#         min_number = st.number_input(
+# 		f'숫자를 입력하세요(3-{len(gc3)+1})',
+#         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        max_number = st.number_input(
-		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=203, step=1)
+#         max_number = st.number_input(
+# 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
+#         min_value=min_number, max_value=len(gc3)+1, value=203, step=1)
 
-        gc2 = gc1.get(f'A{min_number-1}:E{max_number}')
-        gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         gc2 = gc1.get(f'A{min_number-1}:E{max_number}')
+#         gc3 = pd.DataFrame(gc2, columns=gc_df[0])
     
-    st.write('---------------------')
+#     st.write('---------------------')
 
-    gc3 = gc3.reindex(gc3.index.drop(0))
+#     gc3 = gc3.reindex(gc3.index.drop(0))
 
-    text_col = list(gc3.columns).index('Convert text')
+#     text_col = list(gc3.columns).index('Convert text')
 
-    # 'token' 열 추가
-    token_col = gc3.shape[1]
-    gc3['Token positive no.'] = ''
+#     # 'token' 열 추가
+#     token_col = gc3.shape[1]
+#     gc3['Token positive no.'] = ''
 
-    row = 0
-    count = 0
+#     row = 0
+#     count = 0
 
-    while row < gc3.shape[0]:
+#     while row < gc3.shape[0]:
 
-        # 문장 가져오기
-        text = gc3.iloc[row, text_col]
+#         # 문장 가져오기
+#         text = gc3.iloc[row, text_col]
 
         
 
-        # 문장을 띄어쓰기 단위로 나누기
-        #print(text, row)
+#         # 문장을 띄어쓰기 단위로 나누기
+#         #print(text, row)
 
-        if text == None:
-            #print(text, row)
-            # 선택한 인덱스를 'token' 열에 저장
-            token_value = ''
-            gc3.iloc[row, token_col] = token_value
+#         if text == None:
+#             #print(text, row)
+#             # 선택한 인덱스를 'token' 열에 저장
+#             token_value = ''
+#             gc3.iloc[row, token_col] = token_value
         
-        else:
-            words = text.split()
+#         else:
+#             words = text.split()
 
-            #if work_range == '선택':
-            #    id_num = min_number-2
-            #    st.info(f'{row+id_num}. {text}')
+#             #if work_range == '선택':
+#             #    id_num = min_number-2
+#             #    st.info(f'{row+id_num}. {text}')
 
-            #else:
-            #    st.info(f'{row+1}. {text}')
+#             #else:
+#             #    st.info(f'{row+1}. {text}')
             
-            num = row+min_number-2
-            st.info(f'{num}. {text}')
+#             num = row+min_number-2
+#             st.info(f'{num}. {text}')
 
-            #print(words)
-            selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
-                                            words,
-                                            key = count) 
+#             #print(words)
+#             selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
+#                                             words,
+#                                             key = count) 
             
-            # 선택한 단어의 인덱스 출력
-            if selected_words:
-                # selected_indices = [str(words.index(word)) for word in selected_words]
+#             # 선택한 단어의 인덱스 출력
+#             if selected_words:
+#                 # selected_indices = [str(words.index(word)) for word in selected_words]
 
-                # st.text(f"선택한 단어: {', '.join(selected_words)}")
-                # st.text(f"해당 인덱스: {', '.join(selected_indices)}")
+#                 # st.text(f"선택한 단어: {', '.join(selected_words)}")
+#                 # st.text(f"해당 인덱스: {', '.join(selected_indices)}")
 
-                # # 선택한 인덱스를 'token' 열에 저장
-                # token_value = ', '.join(selected_indices)
-                # gc3.iloc[row, token_col] = token_value
+#                 # # 선택한 인덱스를 'token' 열에 저장
+#                 # token_value = ', '.join(selected_indices)
+#                 # gc3.iloc[row, token_col] = token_value
                 
-                selected_indices = [str(words.index(word)) for word in selected_words]
-                test = sorted(selected_indices)
+#                 selected_indices = [str(words.index(word)) for word in selected_words]
+#                 test = sorted(selected_indices)
 
-                st.text(f"선택한 단어: {', '.join(selected_words)}")
-                st.text(f"해당 인덱스: {', '.join(test)}")
+#                 st.text(f"선택한 단어: {', '.join(selected_words)}")
+#                 st.text(f"해당 인덱스: {', '.join(test)}")
 
-                # 선택한 인덱스를 'token' 열에 저장
-                token_value = ', '.join(test)
-                gc3.iloc[row, token_col] = token_value
+#                 # 선택한 인덱스를 'token' 열에 저장
+#                 token_value = ', '.join(test)
+#                 gc3.iloc[row, token_col] = token_value
 
 
-            else:
-                st.text("단어를 선택하지 않았습니다.")
+#             else:
+#                 st.text("단어를 선택하지 않았습니다.")
 
-        row += 1
-        count += 1
+#         row += 1
+#         count += 1
         
-    st.write('---------------------')
-    st.write('결과')
-    st.dataframe(gc3)
+#     st.write('---------------------')
+#     st.write('결과')
+#     st.dataframe(gc3)
 
 
 
-elif choice == menu[1]:
-    text = st.text_input('문장을 입력해주세요',
-                                   'Always fighting')
+# elif choice == menu[1]:
+#     text = st.text_input('문장을 입력해주세요',
+#                                    'Always fighting')
     
-    # # 함수형태로 번역기 형태 만들기
-    # def google_trans(messages):
-    #     from googletrans import Translator
+#     # # 함수형태로 번역기 형태 만들기
+#     # def google_trans(messages):
+#     #     from googletrans import Translator
         
-    #     google = Translator()
-    #     result = google.translate(messages, dest="ko")
+#     #     google = Translator()
+#     #     result = google.translate(messages, dest="ko")
         
-    #     return result.text
+#     #     return result.text
     
-    # st.info(google_trans(text))
+#     # st.info(google_trans(text))
 
-    # 문장을 띄어쓰기 단위로 나누기
-    words = text.split()
+#     # 문장을 띄어쓰기 단위로 나누기
+#     words = text.split()
 
-    selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
-                                    words)
+#     selected_words = st.multiselect('연관있는 단어를 모두 선택하세요.',
+#                                     words)
     
-    # 선택한 단어의 인덱스 출력
-    if selected_words:
-        selected_indices = [str(words.index(word)) for word in selected_words]
+#     # 선택한 단어의 인덱스 출력
+#     if selected_words:
+#         selected_indices = [str(words.index(word)) for word in selected_words]
 
-        st.text(f"선택한 단어: {', '.join(selected_words)}")
-        st.text(f"해당 인덱스: {', '.join(selected_indices)}")
+#         st.text(f"선택한 단어: {', '.join(selected_words)}")
+#         st.text(f"해당 인덱스: {', '.join(selected_indices)}")
     
 
 
-elif choice == menu[2]:
+# elif choice == menu[2]:
 
-## get_all_values() 함수를 이용해 코드를 실행하면 리스트 형태의 값이 리턴됩니다.
-    sheet_name = st.selectbox('시트명을 선택해주세요',
-                              ('whitegray_1','whitegray_2','그 외'))
+# ## get_all_values() 함수를 이용해 코드를 실행하면 리스트 형태의 값이 리턴됩니다.
+#     sheet_name = st.selectbox('시트명을 선택해주세요',
+#                               ('whitegray_1','whitegray_2','그 외'))
     
-    if sheet_name == '그 외':
-        sheet_name = st.text_input('시트명을 입력해주세요',
-                                   'whitegray_1')
+#     if sheet_name == '그 외':
+#         sheet_name = st.text_input('시트명을 입력해주세요',
+#                                    'whitegray_1')
         
-    st.write('---------------------')
+#     st.write('---------------------')
 
-    gc1 = doc.worksheet(sheet_name) ## 입력받도록!
-    work_range = st.selectbox('작업범위를 설정해주세요',
-                              ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
+#     gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+#     work_range = st.selectbox('작업범위를 설정해주세요',
+#                               ('시작구간 선택 (200개 단위)','범위 선택')) # 전체..
         
-    gc_df = gc1.get('A2:F')
-    gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#     gc_df = gc1.get('A2:F')
+#     gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
 
-    if work_range == '시작구간 선택 (200개 단위)':
-        min_number = st.number_input(
-		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
-        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+#     if work_range == '시작구간 선택 (200개 단위)':
+#         min_number = st.number_input(
+# 		f'시작하고자 하는 데이터가 있는 엑셀의 행을 입력하세요 (3-{len(gc3)-200})',
+#         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        try:
-            if min_number + 200 > len(gc3):
-                gc2 = gc1.get(f'A{min_number-1}:F')
-                print(gc2)
-                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         try:
+#             if min_number + 200 > len(gc3):
+#                 gc2 = gc1.get(f'A{min_number-1}:F')
+#                 print(gc2)
+#                 gc3 = pd.DataFrame(gc2, columns=gc_df[0])
             
-            else:
-                gc2 = gc1.get(f'A{min_number-1}:F{min_number+199}')
-                print(gc2)
-                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-        except:
-            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
-            gc_df = gc1.get('A2:F2')
-            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#             else:
+#                 gc2 = gc1.get(f'A{min_number-1}:F{min_number+199}')
+#                 print(gc2)
+#                 gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         except:
+#             st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+#             gc_df = gc1.get('A2:F2')
+#             gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
         
 
 
-    elif work_range == '범위 선택':
-        # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
-        min_number = st.number_input(
-		f'숫자를 입력하세요(3-{len(gc3)+1})',
-        min_value=3, max_value=len(gc3)+1, value=3, step=1)
+#     elif work_range == '범위 선택':
+#         # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+#         min_number = st.number_input(
+# 		f'숫자를 입력하세요(3-{len(gc3)+1})',
+#         min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-        max_number = st.number_input(
-		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-        min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
+#         max_number = st.number_input(
+# 		f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
+#         min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
 
-        try:
-            if min_number + 200 > len(gc3):
-                gc2 = gc1.get(f'A{min_number-1}:F{len(gc3)}')
-                print(gc2)
-                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         try:
+#             if min_number + 200 > len(gc3):
+#                 gc2 = gc1.get(f'A{min_number-1}:F{len(gc3)}')
+#                 print(gc2)
+#                 gc3 = pd.DataFrame(gc2, columns=gc_df[0])
             
-            else:
-                gc2 = gc1.get(f'A{min_number-1}:F{max_number}')
-                print(gc2)
-                gc3 = pd.DataFrame(gc2, columns=gc_df[0])
-        except:
-            st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
-            gc_df = gc1.get('A2:F2')
-            gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#             else:
+#                 gc2 = gc1.get(f'A{min_number-1}:F{max_number}')
+#                 print(gc2)
+#                 gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#         except:
+#             st.error(f"작업을 시작하지않은 데이터가 포함되어있습니다. 작업 완료 또는 '범위선택'을 이용하여 작업해주세요.")
+#             gc_df = gc1.get('A2:F2')
+#             gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
     
-    st.write('---------------------')
+#     st.write('---------------------')
 
-    gc3 = gc3.reindex(gc3.index.drop(0))
+#     gc3 = gc3.reindex(gc3.index.drop(0))
         
-    # gc1 = doc.worksheet(sheet_name) ## 입력받도록!
-    # work_range = st.selectbox('작업범위를 설정해주세요',
-    #                           ('전체','선택'))
+#     # gc1 = doc.worksheet(sheet_name) ## 입력받도록!
+#     # work_range = st.selectbox('작업범위를 설정해주세요',
+#     #                           ('전체','선택'))
         
-    # gc_df = gc1.get('B2:F')
-    # gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
-    # min_number = 3
+#     # gc_df = gc1.get('B2:F')
+#     # gc3 = pd.DataFrame(gc_df, columns=gc_df[0])
+#     # min_number = 3
 
-    # if work_range == '선택':
-    #     # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
-    #     min_number = st.number_input(
-	# 	f'숫자를 입력하세요(3-{len(gc3)+1})',
-    #     min_value=3, max_value=len(gc3)+1, value=3, step=1)
+#     # if work_range == '선택':
+#     #     # min~max value:입력 허용구간, value:최초 입력 값, step:증분 값
+#     #     min_number = st.number_input(
+# 	# 	f'숫자를 입력하세요(3-{len(gc3)+1})',
+#     #     min_value=3, max_value=len(gc3)+1, value=3, step=1)
 
-    #     max_number = st.number_input(
-	# 	f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
-    #     min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
+#     #     max_number = st.number_input(
+# 	# 	f'숫자를 입력하세요({min_number}-{len(gc3)+1})',
+#     #     min_value=min_number, max_value=len(gc3)+1, value=min_number+200, step=1)
 
-    #     gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
-    #     gc3 = pd.DataFrame(gc2, columns=gc_df[0])
+#     #     gc2 = gc1.get(f'B{min_number-1}:F{max_number}')
+#     #     gc3 = pd.DataFrame(gc2, columns=gc_df[0])
     
-    # st.write('---------------------')
+#     # st.write('---------------------')
 
-    # gc3 = gc3.reindex(gc3.index.drop(0))
+#     # gc3 = gc3.reindex(gc3.index.drop(0))
 
-    text_col = list(gc3.columns).index('Convert text')
-    index_col = list(gc3.columns).index('Token positive no.')
+#     text_col = list(gc3.columns).index('Convert text')
+#     index_col = list(gc3.columns).index('Token positive no.')
 
-    # 'token' 열 추가
-    token_col = gc3.shape[1]
+#     # 'token' 열 추가
+#     token_col = gc3.shape[1]
     
-    gc3['token'] = ''
+#     gc3['token'] = ''
 
-    row = 0
+#     row = 0
     
     
-    while row < gc3.shape[0]:
-        try:
-            # 문장 가져오기
-            text = gc3.iloc[row, text_col]
-            index_no = gc3.iloc[row, index_col]
+#     while row < gc3.shape[0]:
+#         try:
+#             # 문장 가져오기
+#             text = gc3.iloc[row, text_col]
+#             index_no = gc3.iloc[row, index_col]
 
 
-            # 문장을 띄어쓰기 단위로 나누기
-            if text is not None:
-                words = text.split()
-                index_num = index_no.split(',')
-                word = [] 
+#             # 문장을 띄어쓰기 단위로 나누기
+#             if text is not None:
+#                 words = text.split()
+#                 index_num = index_no.split(',')
+#                 word = [] 
                 
             
-                for no in index_num:
-                    print(text, index_num, no)
+#                 for no in index_num:
+#                     print(text, index_num, no)
                     
-                    if no is not '' and no is not ' ':
-                        word.append(words[int(no)])
+#                     if no is not '' and no is not ' ':
+#                         word.append(words[int(no)])
                     
-                st.info(f'{row+min_number-2}. {text}')
-                st.text(f"선택한 단어: {', '.join(word)}")
-                st.text(f"해당 인덱스: {', '.join(index_num)}")
+#                 st.info(f'{row+min_number-2}. {text}')
+#                 st.text(f"선택한 단어: {', '.join(word)}")
+#                 st.text(f"해당 인덱스: {', '.join(index_num)}")
                     
-                # 선택한 인덱스를 'token' 열에 저장
-                token_value = ', '.join(word)
-                gc3.iloc[row, token_col] = token_value
+#                 # 선택한 인덱스를 'token' 열에 저장
+#                 token_value = ', '.join(word)
+#                 gc3.iloc[row, token_col] = token_value
                 
         
-        except:
-            st.error(f'{row+min_number-2}. {text}')
+#         except:
+#             st.error(f'{row+min_number-2}. {text}')
 
-            if index_no is None:
-                st.write('토큰 선택 작업을 수행하지 않았습니다.')
+#             if index_no is None:
+#                 st.write('토큰 선택 작업을 수행하지 않았습니다.')
             
-            else:
-                st.write('범위에 오류가 있습니다.')
-                st.text(f"선택 인덱스: {', '.join(index_num)}")
-                st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
+#             else:
+#                 st.write('범위에 오류가 있습니다.')
+#                 st.text(f"선택 인덱스: {', '.join(index_num)}")
+#                 st.text(f"해당 문장 범위 : 0 ~ {len(words)-1}")
             
-        row += 1
+#         row += 1
             
-    st.write('---------------------')
-    st.write('결과')
-    st.dataframe(gc3)
+#     st.write('---------------------')
+#     st.write('결과')
+#     st.dataframe(gc3)
         
     
 
