@@ -7,4 +7,3 @@ googletrans
 psycopg2
 sshtunnel
 pymysql
-getpass
