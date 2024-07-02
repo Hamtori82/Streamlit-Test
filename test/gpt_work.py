@@ -515,14 +515,12 @@ import streamlit as st
 import os
 import pandas as pd
 import gspread
-import psycopg2
 
 ## db 데이터 불러오기
 def db_select(sheet_name):
     ## db 연결
     import pymysql
     from sshtunnel import SSHTunnelForwarder
-    import getpass
 
     if __name__ == '__main__':
         # SSH 연결 정보
@@ -571,7 +569,6 @@ def db_select(sheet_name):
 def data_update(sheet_name, token_value, num):
     import pymysql
     from sshtunnel import SSHTunnelForwarder
-    import getpass
 
     if __name__ == '__main__':
         # SSH 연결 정보
