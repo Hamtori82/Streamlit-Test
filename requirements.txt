@@ -5,3 +5,6 @@ gspread
 openpyxl
 googletrans
 psycopg2
+sshtunnel
+pymysql
+getpass
