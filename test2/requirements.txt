@@ -1,0 +1,5 @@
+mysqlclient
+SQLAlchemy
+psycopg2-binary
+sqlalchemy
+streamlit_gsheets
